@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result - AI HealthGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>AI HealthGuard</h1>
+            <p>Advanced Illness Outcome Prediction System</p>
+        </header>
+
+        <main>
+            <section class="result-card" style="display: block;">
+                <div class="result-header">
+                    <h2>Analysis Result</h2>
+                    <span class="badge {{ 'badge-high' if risk_level == 'High Risk' else 'badge-low' }}">
+                        {{ risk_level }}
+                    </span>
+                </div>
+
+                <div class="result-metrics">
+                    <div class="metric">
+                        <span class="label">Confidence Score</span>
+                        <span class="value">{{ confidence }}</span>
+                    </div>
+                </div>
+
+                <div class="explanation-box">
+                    <h3>Clinical Interpretation</h3>
+                    <p>{{ explanation }}</p>
+                </div>
+
+                <div class="disclaimer">
+                    <small><strong>Note:</strong> This is a decision-support tool using Deep Learning (DNN) and SHAP. It
+                        is not a replacement for professional medical diagnosis.</small>
+                </div>
+
+                <a href="/" class="analyze-btn"
+                    style="text-align: center; display: block; text-decoration: none; margin-top: 2rem;">Analyze New
+                    Patient</a>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

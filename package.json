@@ -1,0 +1,9 @@
+{
+  "name": "illness-prediction",
+  "version": "1.0.0",
+  "description": "Run the Flask illness prediction app via npm scripts (Windows PowerShell)",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./run_app.ps1",
+    "start:direct": "powershell -Command \"& 'C:/Users/MANASA/OneDrive/Desktop/Illness prediction/.venv/Scripts/python.exe' 'src/app/app.py'\""
+  }
+}

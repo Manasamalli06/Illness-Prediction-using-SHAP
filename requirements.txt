@@ -1,0 +1,15 @@
+flask
+tensorflow
+shap
+pandas
+numpy
+scikit-learn
+ctgan
+matplotlib
+imbalanced-learn
+joblib
+mysql-connector-python
+sqlalchemy
+cryptography
+pymysql
+

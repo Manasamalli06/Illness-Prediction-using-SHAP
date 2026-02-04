@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Healthcare Prediction System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>AI HealthGuard</h1>
+            <p>Advanced Illness Outcome Prediction System</p>
+        </header>
+
+        {% if error %}
+        <div class="result-card" style="border-left: 5px solid red; background-color: #fdecea;">
+            <p style="color: red;"><strong>Error:</strong> {{ error }}</p>
+        </div>
+        {% endif %}
+
+        <main>
+            <section class="prediction-card">
+                <h2>Patient Diagnostics</h2>
+                <!-- Changed to POST to /predict for full page reload -->
+                <form id="predictionForm" action="/predict" method="POST">
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="Age" required min="0" max="120" placeholder="e.g. 45">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" name="Gender" required>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Transgender">Transgender</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bmi">BMI</label>
+                        <input type="number" id="bmi" name="BMI" step="0.1" required placeholder="e.g. 24.5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bp">Systolic BP (mmHg)</label>
+                        <input type="number" id="bp" name="Systolic_BP" required placeholder="e.g. 120">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="glucose">Glucose Level (mg/dL)</label>
+                        <input type="number" id="glucose" name="Glucose" required placeholder="e.g. 95">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="temp">Body Temperature (°F)</label>
+                        <input type="number" id="temp" name="Body_Temp" step="0.1" required placeholder="e.g. 98.6">
+                    </div>
+
+                    <button type="submit" class="analyze-btn">Analyze Risk</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
