@@ -12,4 +12,5 @@ mysql-connector-python
 sqlalchemy
 cryptography
 pymysql
+reportlab
 
