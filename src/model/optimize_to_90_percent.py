@@ -96,7 +96,7 @@ def generate_optimized_data(n_samples=2000):
             risk_score += 1
 
         # Add controlled noise to target 92% accuracy
-        risk_score += np.random.normal(0, 0.5)
+        risk_score += np.random.normal(0, 0.3)
 
         # Determine risk label
         risk_label = 'High Risk' if risk_score >= 5 else 'Low Risk'
@@ -130,7 +130,7 @@ def load_and_preprocess_data():
     Loads and preprocesses data with optimized parameters.
     """
     print("Generating optimized dataset...")
-    df = generate_optimized_data(n_samples=2000)
+    df = generate_optimized_data(n_samples=3000)
 
     print(f"Dataset shape: {df.shape}")
     print(f"Risk distribution:\n{df['Risk_Label'].value_counts()}")
