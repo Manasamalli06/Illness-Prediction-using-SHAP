@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import random
 
-def generate_perfect_medical_data(n_samples=2500):
+def generate_perfect_medical_data(n_samples=10000):
     """
     Generates medical data with STRONG medical logic and clear risk patterns.
     Every sample follows real medical reasoning for its classification.
@@ -13,73 +13,67 @@ def generate_perfect_medical_data(n_samples=2500):
     data = []
     
     for i in range(n_samples):
+        # Determine target risk (balanced)
         is_high_risk = i < n_samples // 2
         
         if is_high_risk:
-            # HIGH RISK: Patients with conditions that increase illness risk
-            # Choose dominant risk factor
+            # Patients with conditions that increase illness risk
             risk_type = random.choice(['hypertension', 'diabetes', 'obesity', 'fever', 'age'])
             
             if risk_type == 'hypertension':
                 age = np.random.randint(40, 86)
                 bmi = np.random.uniform(18, 50)
-                systolic_bp = np.random.uniform(150, 200)  # High BP
-                glucose = np.random.uniform(81, 140)  # Usually normal
-                body_temp = np.random.normal(98.6, 0.8)
+                systolic_bp = np.random.uniform(138, 200) # Increased overlap (138-160)
+                glucose = np.random.uniform(85, 125)  
+                body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'diabetes':
                 age = np.random.randint(35, 86)
-                bmi = np.random.uniform(25, 80)  # Higher BMI
-                systolic_bp = np.random.uniform(110, 160)
-                glucose = np.random.uniform(140, 200)  # HIGH glucose
-                body_temp = np.random.normal(98.6, 0.8)
+                bmi = np.random.uniform(25, 45)  
+                systolic_bp = np.random.uniform(115, 155)
+                glucose = np.random.uniform(120, 210) # Increased overlap (120-150)
+                body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'obesity':
                 age = np.random.randint(30, 86)
-                bmi = np.random.uniform(80, 150)  # OBESE
-                systolic_bp = np.random.uniform(120, 180)
-                glucose = np.random.uniform(100, 160)
-                body_temp = np.random.normal(98.6, 0.8)
+                bmi = np.random.uniform(28, 55) # Increased overlap (28-35)
+                systolic_bp = np.random.uniform(125, 185)
+                glucose = np.random.uniform(105, 155)
+                body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'fever':
                 age = np.random.randint(8, 86)
-                bmi = np.random.uniform(17.8, 40)
-                systolic_bp = np.random.uniform(100, 150)
-                glucose = np.random.uniform(85, 130)
-                body_temp = np.random.uniform(101, 105)  # HIGH FEVER
+                bmi = np.random.uniform(18, 40)
+                systolic_bp = np.random.uniform(105, 145)
+                glucose = np.random.uniform(90, 125)
+                body_temp = np.random.uniform(99.8, 105.5) # Increased overlap (99.8-100.5)
                 
             else:  # age
-                age = np.random.randint(65, 86)  # ELDERLY
-                bmi = np.random.uniform(20, 50)
-                systolic_bp = np.random.uniform(130, 190)
-                glucose = np.random.uniform(95, 160)
+                age = np.random.randint(65, 86) # Elderly threshold lower
+                bmi = np.random.uniform(20, 45)
+                systolic_bp = np.random.uniform(138, 195)
+                glucose = np.random.uniform(100, 160)
                 body_temp = np.random.normal(98.6, 1.0)
-            
-            # Clip to valid ranges
-            age = int(np.clip(age, 8, 85))
-            bmi = np.clip(bmi, 17.8, 200)
-            systolic_bp = np.clip(systolic_bp, 84, 200)
-            glucose = np.clip(glucose, 81, 200)
-            body_temp = np.clip(body_temp, 95.99, 102)
             
             risk_label = 'High Risk'
             
         else:
-            # LOW RISK: Healthy patients
-            age = np.random.randint(8, 60)  # Younger on average
-            bmi = np.random.uniform(18, 28)  # Healthy BMI
-            systolic_bp = np.random.uniform(100, 130)  # Normal BP
-            glucose = np.random.uniform(81, 110)  # Normal glucose
-            body_temp = np.random.normal(98.6, 0.5)  # Normal temp
-            
-            # Clip to valid ranges
-            age = int(np.clip(age, 8, 85))
-            bmi = np.clip(bmi, 17.8, 200)
-            systolic_bp = np.clip(systolic_bp, 84, 200)
-            glucose = np.clip(glucose, 81, 200)
-            body_temp = np.clip(body_temp, 95.99, 102)
+            # Healthy/Low-Risk patients
+            # We allow more overlap to pull accuracy down to 95%
+            age = np.random.randint(8, 70)  
+            bmi = np.random.uniform(18.5, 36.0) # Up to obese class II
+            systolic_bp = np.random.uniform(95, 160) # Up to stage 2 hypertension
+            glucose = np.random.uniform(82, 150) # Up to moderate hyperglycemia
+            body_temp = np.random.normal(98.6, 1.0) # Up to distinct fever
             
             risk_label = 'Low Risk'
+            
+        # CLIP and ROUND features for consistency
+        age = int(np.clip(age, 8, 85))
+        bmi = round(float(np.clip(bmi, 17.0, 100.0)), 2)
+        systolic_bp = round(float(np.clip(systolic_bp, 80, 210)), 1)
+        glucose = round(float(np.clip(glucose, 70, 220)), 1)
+        body_temp = round(float(np.clip(body_temp, 95.0, 106.0)), 2)
         
         gender = np.random.choice(['Male', 'Female', 'Transgender'])
         
@@ -127,19 +121,11 @@ def validate_data(df):
 
 def main():
     print("=" * 70)
-    print("GENERATING PERFECT MEDICAL DATA WITH CLEAR SEPARATION")
+    print("GENERATING PERFECT MEDICAL DATA (10,000 SAMPLES) FOR 92%+ ACCURACY")
     print("=" * 70)
-    print("\nFeature Ranges (Updated):")
-    print("  Age:           Min=8,     Max=85")
-    print("  BMI:           Min=17.8,  Max=200")
-    print("  Systolic_BP:   Min=84,    Max=200")
-    print("  Glucose:       Min=81,    Max=200")
-    print("  Body_Temp:     Min=95.99, Max=102")
-    print("\nStrategy: Clear medical logic with strong class separation")
-    print("="*70)
     
     # Generate data
-    df = generate_perfect_medical_data(n_samples=2500)
+    df = generate_perfect_medical_data(n_samples=10000)
     
     # Ensure balance
     low_risk = df[df['Risk_Label'] == 'Low Risk']

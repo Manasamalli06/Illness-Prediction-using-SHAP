@@ -89,34 +89,34 @@ for i, test_case in enumerate(test_cases, 1):
         if response.status_code == 200:
             # Extract prediction from HTML
             if f"badge-high" in response.text and test_case['expected'] == 'High Risk':
-                print(f"✓ CORRECT: Predicted High Risk (as expected)")
+                print(f"CORRECT: Predicted High Risk (as expected)")
                 correct += 1
             elif f"badge-low" in response.text and test_case['expected'] == 'Low Risk':
-                print(f"✓ CORRECT: Predicted Low Risk (as expected)")
+                print(f"CORRECT: Predicted Low Risk (as expected)")
                 correct += 1
             elif f"badge-high" in response.text:
-                print(f"✗ WRONG: Predicted High Risk (expected Low Risk)")
+                print(f"WRONG: Predicted High Risk (expected Low Risk)")
             else:
-                print(f"✗ WRONG: Predicted Low Risk (expected High Risk)")
+                print(f"WRONG: Predicted Low Risk (expected High Risk)")
             
             total += 1
             
             # Show confidence
             if 'Confidence Score' in response.text:
                 print(f"  (Prediction result page loaded successfully)")
-        else:
-            print(f"✗ Request failed: {response.status_code}")
+            else:
+                print(f"FAILED: Request failed {response.status_code}")
     
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"FAILED: Error: {e}")
 
 print("\n" + "=" * 80)
 print(f"RESULTS: {correct}/{total} predictions correct ({100*correct/total:.1f}%)")
 print("=" * 80)
 
 if correct == total:
-    print("✓✓✓ ALL PREDICTIONS ARE CORRECT!")
+    print("ALL PREDICTIONS ARE CORRECT!")
 elif correct >= total * 0.8:
-    print("✓ GOOD: Most predictions are correct")
+    print("GOOD: Most predictions are correct")
 else:
-    print("⚠ Problem: Some predictions are incorrect")
+    print("PROBLEM: Some predictions are incorrect")

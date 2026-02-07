@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_file
 import pandas as pd
 import numpy as np
-import tensorflow as tf
-import tensorflow as tf
 import joblib
 import os
 import matplotlib.pyplot as plt
@@ -24,8 +22,12 @@ matplotlib.use('Agg')  # Use non-interactive backend
 
 app = Flask(__name__)
 
-# Paths
-MODEL_DIR = '../../models'
+# --- Path Logic (Robust and Absolute) ---
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, '../../'))
+MODEL_DIR = os.path.join(PROJECT_ROOT, 'models')
+DATA_FILE = os.path.join(PROJECT_ROOT, 'augmented_medical_data.csv')
+
 MODEL_PATH = os.path.join(MODEL_DIR, 'illness_risk_model.pkl')
 SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.pkl')
 ENCODER_PATH = os.path.join(MODEL_DIR, 'label_encoder.pkl')
@@ -49,8 +51,8 @@ def load_artifacts():
             feature_names = joblib.load(FEATURE_NAMES_PATH)
 
             # SHAP explainer will be initialized lazily on first prediction for faster startup
-            print("XGBoost Model and artifacts loaded successfully.")
-            print("SHAP explainer will be initialized on first prediction.")
+            print("XGBoost Model (Optimized) and artifacts loaded successfully.")
+            print("SHAP TreeExplainer will be initialized on first prediction.")
         else:
             print("Model artifacts not found. Please run src/model/train.py first.")
     except Exception as e:
@@ -66,9 +68,8 @@ def initialize_shap_explainer():
 
     try:
         print("[SHAP] Initializing SHAP explainer...")
-        csv_path = '../../augmented_medical_data.csv'
-        if os.path.exists(csv_path):
-            df = pd.read_csv(csv_path)
+        if os.path.exists(DATA_FILE):
+            df = pd.read_csv(DATA_FILE)
             # Preprocess background data
             if 'Gender' in df.columns and df['Gender'].dtype == 'object':
                 df['Gender'] = df['Gender'].map({'Male': 0, 'Female': 1, 'Transgender': 2})
@@ -77,9 +78,9 @@ def initialize_shap_explainer():
             # Use smaller sample for faster SHAP computation (50 samples)
             background_data = X_bg_scaled[:min(50, len(X_bg_scaled))]
 
-            # Initialize SHAP DeepExplainer
-            explainer = shap.DeepExplainer(model, background_data)
-            print("[SHAP] SHAP Explainer initialized successfully.")
+            # Initialize SHAP TreeExplainer for XGBoost
+            explainer = shap.TreeExplainer(model)
+            print("[SHAP] SHAP TreeExplainer initialized successfully.")
         else:
             print("[SHAP] Background data not found for SHAP explainer.")
     except Exception as e:
@@ -400,6 +401,7 @@ def generate_shap_plot(X_sample, predicted_prob, risk_label):
 
         # Compute SHAP values for this sample
         print(f"[SHAP] Computing SHAP values for prediction: {risk_label} ({predicted_prob:.2%})")
+        # TreeExplainer usually returns a single array for binary classification
         shap_values = explainer.shap_values(X_sample)
 
         print(f"[SHAP] SHAP values type: {type(shap_values)}, is list: {isinstance(shap_values, list)}")
@@ -786,7 +788,7 @@ def download_report():
             alignment=0
         )
         story.append(Paragraph(
-            "<b>Note:</b> This is a decision-support tool using Deep Learning (DNN) and SHAP for explainability. "
+            "<b>Note:</b> This is a decision-support tool using Optimized XGBoost and SHAP for explainability. "
             "It is not a replacement for professional medical diagnosis. Always consult with healthcare professionals for medical advice.",
             disclaimer_style
         ))

@@ -18,14 +18,15 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Constants
-MODEL_DIR = '../../models'
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(SCRIPT_DIR, '../../models')
 if not os.path.exists(MODEL_DIR):
     os.makedirs(MODEL_DIR)
 
 def load_and_preprocess_data():
     """Load and preprocess data"""
     print("Loading data...")
-    csv_path = '../../augmented_medical_data.csv'
+    csv_path = os.path.join(SCRIPT_DIR, '../../augmented_medical_data.csv')
     df = pd.read_csv(csv_path)
     
     print(f"\nDataset shape: {df.shape}")
