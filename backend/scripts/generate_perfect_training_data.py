@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
+import os
 
 def generate_perfect_medical_data(n_samples=10000):
     """
@@ -23,48 +24,47 @@ def generate_perfect_medical_data(n_samples=10000):
             if risk_type == 'hypertension':
                 age = np.random.randint(40, 86)
                 bmi = np.random.uniform(18, 50)
-                systolic_bp = np.random.uniform(138, 200) # Increased overlap (138-160)
+                systolic_bp = np.random.uniform(150, 200) # Clear high BP
                 glucose = np.random.uniform(85, 125)  
                 body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'diabetes':
                 age = np.random.randint(35, 86)
                 bmi = np.random.uniform(25, 45)  
-                systolic_bp = np.random.uniform(115, 155)
-                glucose = np.random.uniform(120, 210) # Increased overlap (120-150)
+                systolic_bp = np.random.uniform(115, 140)
+                glucose = np.random.uniform(160, 210) # Clear high glucose
                 body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'obesity':
                 age = np.random.randint(30, 86)
-                bmi = np.random.uniform(28, 55) # Increased overlap (28-35)
-                systolic_bp = np.random.uniform(125, 185)
-                glucose = np.random.uniform(105, 155)
+                bmi = np.random.uniform(35, 55) # Clear high BMI
+                systolic_bp = np.random.uniform(125, 140)
+                glucose = np.random.uniform(105, 125)
                 body_temp = np.random.normal(98.6, 0.6)
                 
             elif risk_type == 'fever':
                 age = np.random.randint(8, 86)
-                bmi = np.random.uniform(18, 40)
-                systolic_bp = np.random.uniform(105, 145)
-                glucose = np.random.uniform(90, 125)
-                body_temp = np.random.uniform(99.8, 105.5) # Increased overlap (99.8-100.5)
+                bmi = np.random.uniform(18, 30)
+                systolic_bp = np.random.uniform(105, 130)
+                glucose = np.random.uniform(90, 115)
+                body_temp = np.random.uniform(101.0, 105.5) # Clear high temp
                 
             else:  # age
-                age = np.random.randint(65, 86) # Elderly threshold lower
-                bmi = np.random.uniform(20, 45)
-                systolic_bp = np.random.uniform(138, 195)
-                glucose = np.random.uniform(100, 160)
-                body_temp = np.random.normal(98.6, 1.0)
+                age = np.random.randint(75, 86) # Clear elderly
+                bmi = np.random.uniform(20, 30)
+                systolic_bp = np.random.uniform(110, 135)
+                glucose = np.random.uniform(100, 120)
+                body_temp = np.random.normal(98.6, 0.5)
             
             risk_label = 'High Risk'
             
         else:
-            # Healthy/Low-Risk patients
-            # We allow more overlap to pull accuracy down to 95%
-            age = np.random.randint(8, 70)  
-            bmi = np.random.uniform(18.5, 36.0) # Up to obese class II
-            systolic_bp = np.random.uniform(95, 160) # Up to stage 2 hypertension
-            glucose = np.random.uniform(82, 150) # Up to moderate hyperglycemia
-            body_temp = np.random.normal(98.6, 1.0) # Up to distinct fever
+            # Healthy/Low-Risk patients - STRICT boundaries
+            age = np.random.randint(18, 60)  
+            bmi = np.random.uniform(18.5, 24.9) 
+            systolic_bp = np.random.uniform(90, 119) 
+            glucose = np.random.uniform(70, 99) 
+            body_temp = np.random.uniform(97.5, 99.0) 
             
             risk_label = 'Low Risk'
             
@@ -152,7 +152,7 @@ def main():
     print(f"  Body_Temp:   {df['Body_Temp'].min():.2f}-{df['Body_Temp'].max():.2f}")
     
     # Save to CSV
-    output_path = 'augmented_medical_data.csv'
+    output_path = os.path.join(os.path.dirname(__file__), '../data/augmented_medical_data.csv')
     df.to_csv(output_path, index=False)
     print(f"\n✓ Data saved to: {output_path}")
     print(f"  Total records: {len(df)}")

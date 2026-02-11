@@ -6,8 +6,10 @@ from sqlalchemy import create_engine, text
 import sys
 import os
 
-# Add src to path to import db_config
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Add backend to path to import data.db_config
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+sys.path.append(BACKEND_DIR)
 from data.db_config import get_db_connection_string, DB_NAME
 
 def generate_base_data(n_samples=1000):
@@ -125,5 +127,6 @@ if __name__ == "__main__":
     save_to_mysql(final_df)
     
     # Also save CSV as backup/reference
-    final_df.to_csv('augmented_medical_data.csv', index=False)
+    csv_path = os.path.join(BACKEND_DIR, 'data', 'augmented_medical_data.csv')
+    final_df.to_csv(csv_path, index=False)
     print("Process Complete.")

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI HealthGuard - Welcome</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="landing-page">
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="logo-box">
+                <span class="logo-icon">🩺</span>
+                <h1>AI HealthGuard</h1>
+            </div>
+            <h2>Predicting Health Outcomes with <span class="highlight">Intelligence</span></h2>
+            <p class="hero-subtitle">
+                Advanced diagnostic support using Optimized XGBoost and SHAP explainability.
+                Get professional insights into health risks based on clinical parameters.
+            </p>
+            <div class="action-buttons">
+                <a href="/diagnostics" class="cta-button primary">Get Started</a>
+                <a href="https://github.com/Manasamalli06/Illness-Prediction-using-SHAP" target="_blank"
+                    class="cta-button secondary">Learn More</a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="feature-card-grid">
+                <div class="f-card">
+                    <span class="f-icon">📊</span>
+                    <h3>High Accuracy</h3>
+                    <p>95%+ Prediction Precision</p>
+                </div>
+                <div class="f-card">
+                    <span class="f-icon">🔍</span>
+                    <h3>Explainable AI</h3>
+                    <p>SHAP-driven Interpretations</p>
+                </div>
+                <div class="f-card">
+                    <span class="f-icon">📄</span>
+                    <h3>Clinical Reports</h3>
+                    <p>Detailed PDF Analysis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="landing-footer">
+        <p>© 2026 AI HealthGuard System • For educational/decision-support use only</p>
+    </footer>
+</body>
+
+</html>

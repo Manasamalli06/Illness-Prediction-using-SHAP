@@ -2,7 +2,11 @@ import pymysql
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+# Add backend to path to import data.db_config
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+sys.path.append(BACKEND_DIR)
+
 from data.db_config import DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT
 
 try:

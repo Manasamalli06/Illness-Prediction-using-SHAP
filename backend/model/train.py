@@ -22,13 +22,13 @@ from data.db_config import get_db_connection_string
 
 # Constants
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(SCRIPT_DIR, '../../models')
+MODEL_DIR = os.path.join(SCRIPT_DIR, '../models')
 if not os.path.exists(MODEL_DIR):
     os.makedirs(MODEL_DIR)
 
 def load_data():
     """Load data from CSV (prioritized for perfect training consistency)"""
-    csv_path = os.path.join(SCRIPT_DIR, '../../augmented_medical_data.csv')
+    csv_path = os.path.join(SCRIPT_DIR, '../data/augmented_medical_data.csv')
     if os.path.exists(csv_path):
         print(f"Loading data from CSV: {csv_path}")
         return pd.read_csv(csv_path)
@@ -90,44 +90,26 @@ def train():
     
     # Save LabelEncoder for app.py compatibility
     le = LabelEncoder()
-    le.fit(['Low Risk', 'High Risk'])
+    # Explicitly set classes to ensure 'Low Risk' is 0 and 'High Risk' is 1
+    # Alphabetical order: High Risk (0), Low Risk (1). 
+    le.classes_ = np.array(['Low Risk', 'High Risk'])
     joblib.dump(le, os.path.join(MODEL_DIR, 'label_encoder.pkl'))
 
-    # 4. Hyperparameter Tuning with XGBoost
-    print("Starting streamlined hyperparameter optimization for speed...")
+    # 4. Model Training (Optimized for Perfect Data)
+    print("Training XGBoost Model...")
     
-    # Reduced folds for speed
-    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
-    
-    param_grid = {
-        'n_estimators': [100, 200],
-        'max_depth': [3, 5],
-        'learning_rate': [0.05, 0.1],
-        'subsample': [0.8, 1.0],
-        'gamma': [0, 0.1]
-    }
-
-    xgb = XGBClassifier(
-        objective='binary:logistic',
-        eval_metric='logloss',
+    model = XGBClassifier(
+        n_estimators=100,
+        max_depth=6,
+        learning_rate=0.1,
         random_state=42,
-        use_label_encoder=False
+        use_label_encoder=False,
+        eval_metric='logloss'
     )
 
-    grid_search = GridSearchCV(
-        estimator=xgb,
-        param_grid=param_grid,
-        cv=skf,
-        scoring='accuracy',
-        n_jobs=-1,
-        verbose=1
-    )
-
-    grid_search.fit(X_train_scaled, y_train)
+    model.fit(X_train_scaled, y_train)
     
-    best_model = grid_search.best_estimator_
-    print(f"\nBest Parameters: {grid_search.best_params_}")
-    print(f"Best CV Accuracy: {grid_search.best_score_:.4f}")
+    best_model = model
 
     # 5. Final Evaluation
     y_pred = best_model.predict(X_test_scaled)
@@ -161,7 +143,6 @@ def train():
     # Save training history / metrics
     history = {
         'algorithm': 'XGBoost (Optimized)',
-        'best_params': grid_search.best_params_,
         'test_metrics': {
             'accuracy': float(accuracy),
             'precision': float(precision),

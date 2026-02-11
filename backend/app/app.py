@@ -1,5 +1,8 @@
 from flask import Flask, render_template, request, jsonify, send_file
 import pandas as pd
+print("\n" + "!" * 50)
+print("!!! RUNNING VERSION: 2026-02-11_V2 (FIXED LOADING) !!!")
+print("!" * 50 + "\n")
 import numpy as np
 import joblib
 import os
@@ -20,13 +23,15 @@ import shap
 warnings.filterwarnings('ignore')
 matplotlib.use('Agg')  # Use non-interactive backend
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='../../frontend/templates', 
+            static_folder='../../frontend/static')
 
 # --- Path Logic (Robust and Absolute) ---
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, '../../'))
-MODEL_DIR = os.path.join(PROJECT_ROOT, 'models')
-DATA_FILE = os.path.join(PROJECT_ROOT, 'augmented_medical_data.csv')
+MODEL_DIR = os.path.join(PROJECT_ROOT, 'backend', 'models')
+DATA_FILE = os.path.join(PROJECT_ROOT, 'backend', 'data', 'augmented_medical_data.csv')
 
 MODEL_PATH = os.path.join(MODEL_DIR, 'illness_risk_model.pkl')
 SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.pkl')
@@ -43,20 +48,32 @@ background_data = None
 
 def load_artifacts():
     global model, scaler, label_encoder, feature_names, explainer, background_data
+    print(f"\n[DEBUG] load_artifacts called.")
+    print(f"[DEBUG] Current Working Directory: {os.getcwd()}")
+    print(f"[DEBUG] App Directory: {APP_DIR}")
+    print(f"[DEBUG] Project Root: {PROJECT_ROOT}")
+    print(f"[DEBUG] Model Directory: {MODEL_DIR}")
+    print(f"[DEBUG] Target Model Path: {MODEL_PATH}")
+    
     try:
         if os.path.exists(MODEL_PATH):
+            print(f"[DEBUG] Model file FOUND at {MODEL_PATH}")
             model = joblib.load(MODEL_PATH)
             scaler = joblib.load(SCALER_PATH)
             label_encoder = joblib.load(ENCODER_PATH)
             feature_names = joblib.load(FEATURE_NAMES_PATH)
 
-            # SHAP explainer will be initialized lazily on first prediction for faster startup
-            print("XGBoost Model (Optimized) and artifacts loaded successfully.")
+            print(f"XGBoost Model loaded successfully.")
             print("SHAP TreeExplainer will be initialized on first prediction.")
         else:
-            print("Model artifacts not found. Please run src/model/train.py first.")
+            print(f"CRITICAL: Model artifacts NOT found at {MODEL_PATH}")
+            # Check if it exists in a relative path just in case
+            rel_path = os.path.join('backend', 'models', 'illness_risk_model.pkl')
+            print(f"[DEBUG] Checking relative path {rel_path}: {os.path.exists(rel_path)}")
     except Exception as e:
         print(f"Error loading artifacts: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def initialize_shap_explainer():
@@ -479,12 +496,20 @@ def generate_shap_plot(X_sample, predicted_prob, risk_label):
 
 
 @app.route('/')
-
 def home():
+    return render_template('home.html')
+
+@app.route('/diagnostics')
+def diagnostics():
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    global model
+    if not model:
+        print("[INIT] Attempting to load artifacts on first prediction...")
+        load_artifacts()
+        
     if not model:
         return render_template('index.html', error='Model not loaded. Please train the model first.')
 
@@ -809,8 +834,10 @@ def download_report():
         print(f"Error generating report: {e}")
         return render_template('index.html', error=f"Error generating report: {str(e)}")
 
+# --- Startup Initialization ---
+load_artifacts()
+
 if __name__ == '__main__':
-    load_artifacts()
     # Print a clear message that the server is ready
     print("\n" + "="*50)
     print("SERVER RUNNING! Open this URL in your browser:")

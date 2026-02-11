@@ -1,10 +1,15 @@
 :root {
-    --bg-soft: #f5f8fb; /* single soft background */
-    --accent: #2563eb; /* calm blue accent for headings/buttons */
+    --bg-soft: #f5f8fb;
+    /* single soft background */
+    --accent: #2563eb;
+    /* calm blue accent for headings/buttons */
     --accent-dark: #1e4fb8;
-    --card-bg: #ffffff; /* cards and tables */
-    --text-main: #243044; /* primary text color */
-    --muted: #6b7280; /* secondary text */
+    --card-bg: #ffffff;
+    /* cards and tables */
+    --text-main: #243044;
+    /* primary text color */
+    --muted: #6b7280;
+    /* secondary text */
     --table-header: #eaf2ff;
     --danger: #e74c3c;
     --success: #27ae60;
@@ -221,4 +226,206 @@ th {
 td {
     border-bottom: 1px solid #e6edf8;
     font-size: 0.95rem;
+}
+
+/* Landing Page Styles */
+.landing-page {
+    background: radial-gradient(circle at top right, #eef2ff, var(--bg-soft));
+    display: flex;
+    flex-direction: column;
+}
+
+.hero-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    gap: 4rem;
+}
+
+.hero-content {
+    flex: 1;
+    max-width: 600px;
+}
+
+.logo-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.logo-icon {
+    font-size: 2.5rem;
+}
+
+.hero-content h1 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    letter-spacing: -0.02em;
+    font-weight: 700;
+}
+
+.hero-content h2 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+    color: var(--text-main);
+    border: none;
+    margin-bottom: 1.5rem;
+    padding: 0;
+}
+
+.highlight {
+    color: var(--accent);
+}
+
+.hero-subtitle {
+    font-size: 1.15rem;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.cta-button {
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    display: inline-block;
+}
+
+.cta-button.primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.cta-button.primary:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+.cta-button.secondary {
+    background: white;
+    color: var(--text-main);
+    border: 1px solid #e2e8f0;
+}
+
+.cta-button.secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.hero-visual {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.feature-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.f-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    transition: transform 0.3s ease;
+}
+
+.f-card:hover {
+    transform: translateY(-8px);
+}
+
+.f-card:nth-child(3) {
+    grid-column: span 2;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+}
+
+.f-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.f-card:nth-child(3) .f-icon {
+    margin-bottom: 0;
+}
+
+.f-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.f-card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.landing-footer {
+    padding: 2rem;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 1024px) {
+    .hero-container {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 2rem;
+    }
+
+    .hero-content {
+        max-width: 100%;
+    }
+
+    .hero-subtitle {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .action-buttons {
+        justify-content: center;
+    }
+
+    .feature-card-grid {
+        margin-top: 2rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-content h2 {
+        font-size: 2.5rem;
+    }
+
+    .feature-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .f-card:nth-child(3) {
+        grid-column: span 1;
+        flex-direction: column;
+        text-align: center;
+    }
 }

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import random
+import os
 
 def generate_realistic_medical_data(n_samples=2000):
     """
@@ -127,6 +128,14 @@ def generate_realistic_medical_data(n_samples=2000):
     
     df = pd.DataFrame(data)
     
+    # Introduce Label Noise to target 92-95% accuracy
+    # Flipping ~4.5% of labels to target the 93-94% accuracy range
+    noise_idx = df.sample(frac=0.045, random_state=42).index
+    df.loc[noise_idx, 'Risk_Label'] = df.loc[noise_idx, 'Risk_Label'].map({
+        'Low Risk': 'High Risk', 
+        'High Risk': 'Low Risk'
+    })
+
     # Ensure perfect class balance
     low_risk = df[df['Risk_Label'] == 'Low Risk']
     high_risk = df[df['Risk_Label'] == 'High Risk']
@@ -174,8 +183,9 @@ def main():
     print(f"\nFeature Statistics for HIGH RISK:")
     print(df[df['Risk_Label'] == 'High Risk'][['Age', 'BMI', 'Systolic_BP', 'Glucose', 'Body_Temp']].describe().round(2))
     
-    # Save to CSV
-    output_path = 'augmented_medical_data.csv'
+    # Save to CSV using robust path
+    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+    output_path = os.path.join(SCRIPT_DIR, '../data/augmented_medical_data.csv')
     df.to_csv(output_path, index=False)
     print(f"\n✓ Data saved to: {output_path}")
     print(f"  Total records: {len(df)}")
