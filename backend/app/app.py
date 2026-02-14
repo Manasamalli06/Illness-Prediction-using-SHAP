@@ -38,6 +38,16 @@ SCALER_PATH = os.path.join(MODEL_DIR, 'scaler.pkl')
 ENCODER_PATH = os.path.join(MODEL_DIR, 'label_encoder.pkl')
 FEATURE_NAMES_PATH = os.path.join(MODEL_DIR, 'feature_names.pkl')
 
+# --- Clinical Constants (Correct Medical Logic) ---
+# Values outside these ranges will be flagged as raising risk.
+CLINICAL_RANGES = {
+    'Body_Temp': {'min': 97.0, 'max': 100.3, 'name': 'Body Temperature', 'unit': '°F'},
+    'Glucose': {'min': 70, 'max': 125, 'name': 'Glucose', 'unit': 'mg/dL'},
+    'Systolic_BP': {'min': 90, 'max': 130, 'name': 'Systolic BP', 'unit': 'mmHg'},
+    'BMI': {'min': 18.5, 'max': 24.9, 'name': 'BMI', 'unit': ''},
+    'Age': {'min': 0, 'max': 60, 'name': 'Age', 'unit': 'years'}
+}
+
 # Global variables to hold loaded artifacts
 model = None
 scaler = None
@@ -129,22 +139,29 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     gender = gender_map.get(int(gender_encoded), 'Unknown')
 
     # Define clinical thresholds
-    BP_ELEVATED = 130
-    BP_HIGH_STAGE1 = 140
-    BP_HIGH_STAGE2 = 160
+    BMI_OVERWEIGHT = 25
+    BMI_OBESE = 30
+    BMI_OBESE_SEVERE = 35
+    BMI_UNDERWEIGHT = 18.5
 
-    GLUCOSE_PREDIABETIC = 100
-    GLUCOSE_DIABETIC = 126
-    GLUCOSE_CRITICAL = 200
-
+    TEMP_LOWERNORMAL = 97.0
+    TEMP_HYPOTHERMIA = 95.0
     TEMP_LOWGRADE_FEVER = 99.5
     TEMP_FEVER = 100.4
     TEMP_HIGH_FEVER = 102
     TEMP_CRITICAL = 103.5
 
-    BMI_OVERWEIGHT = 25
-    BMI_OBESE = 30
-    BMI_OBESE_SEVERE = 35
+    GLUCOSE_HYPOGLYCEMIA = 70
+    GLUCOSE_SEVERE_HYPO = 50
+    GLUCOSE_PREDIABETIC = 100
+    GLUCOSE_DIABETIC = 126
+    GLUCOSE_CRITICAL = 200
+
+    BP_HYPOTENSION = 90
+    BP_CRITICAL_LOW = 70
+    BP_ELEVATED = 130
+    BP_HIGH_STAGE1 = 140
+    BP_HIGH_STAGE2 = 160
 
     # Analyze feature deviations and severity
     features_analysis = {}
@@ -156,6 +173,12 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     elif systolic_bp >= BP_HIGH_STAGE1:
         features_analysis['bp_severity'] = 'high'
         features_analysis['bp_desc'] = f"Stage 1 hypertension ({systolic_bp} mmHg)"
+    elif systolic_bp <= BP_CRITICAL_LOW:
+        features_analysis['bp_severity'] = 'critical'
+        features_analysis['bp_desc'] = f"critical hypotension/shock ({systolic_bp} mmHg)"
+    elif systolic_bp <= BP_HYPOTENSION:
+        features_analysis['bp_severity'] = 'moderate'
+        features_analysis['bp_desc'] = f"hypotension ({systolic_bp} mmHg)"
     elif systolic_bp >= BP_ELEVATED:
         features_analysis['bp_severity'] = 'elevated'
         features_analysis['bp_desc'] = f"elevated blood pressure ({systolic_bp} mmHg)"
@@ -167,6 +190,12 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     if glucose >= GLUCOSE_CRITICAL:
         features_analysis['glucose_severity'] = 'critical'
         features_analysis['glucose_desc'] = f"critically elevated glucose ({glucose} mg/dL)"
+    elif glucose <= GLUCOSE_SEVERE_HYPO:
+        features_analysis['glucose_severity'] = 'critical'
+        features_analysis['glucose_desc'] = f"severe hypoglycemia ({glucose} mg/dL)"
+    elif glucose <= GLUCOSE_HYPOGLYCEMIA:
+        features_analysis['glucose_severity'] = 'moderate'
+        features_analysis['glucose_desc'] = f"hypoglycemia ({glucose} mg/dL)"
     elif glucose >= GLUCOSE_DIABETIC:
         features_analysis['glucose_severity'] = 'high'
         features_analysis['glucose_desc'] = f"elevated fasting glucose ({glucose} mg/dL) consistent with diabetes"
@@ -181,9 +210,15 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     if body_temp >= TEMP_CRITICAL:
         features_analysis['temp_severity'] = 'critical'
         features_analysis['temp_desc'] = f"critical hyperthermia ({body_temp}°F)"
+    elif body_temp <= TEMP_HYPOTHERMIA:
+        features_analysis['temp_severity'] = 'critical'
+        features_analysis['temp_desc'] = f"critical hypothermia ({body_temp}°F)"
     elif body_temp >= TEMP_HIGH_FEVER:
         features_analysis['temp_severity'] = 'high'
-        features_analysis['temp_desc'] = f"significant fever ({body_temp}°F), suggesting acute infection"
+        features_analysis['temp_desc'] = f"significant fever ({body_temp}°F)"
+    elif body_temp <= TEMP_LOWERNORMAL:
+        features_analysis['temp_severity'] = 'moderate'
+        features_analysis['temp_desc'] = f"abnormally low temperature ({body_temp}°F)"
     elif body_temp >= TEMP_FEVER:
         features_analysis['temp_severity'] = 'moderate'
         features_analysis['temp_desc'] = f"fever ({body_temp}°F) present"
@@ -198,6 +233,9 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     if bmi >= BMI_OBESE_SEVERE:
         features_analysis['bmi_severity'] = 'severe'
         features_analysis['bmi_desc'] = f"severe obesity (BMI {bmi:.1f})"
+    elif bmi <= BMI_UNDERWEIGHT:
+        features_analysis['bmi_severity'] = 'moderate'
+        features_analysis['bmi_desc'] = f"underweight status (BMI {bmi:.1f})"
     elif bmi >= BMI_OBESE:
         features_analysis['bmi_severity'] = 'high'
         features_analysis['bmi_desc'] = f"obesity (BMI {bmi:.1f})"
@@ -241,20 +279,22 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
             if len(top_abnormalities) >= 2:
                 # Two or more critical/high abnormalities
                 abn_list = []
-                if any(sr[0] == 'bp' for sr in top_abnormalities):
-                    abn_list.append("significant hypertension")
-                if any(sr[0] == 'glucose' for sr in top_abnormalities):
-                    abn_list.append("hyperglycemia")
-                if any(sr[0] == 'temp' for sr in top_abnormalities):
-                    abn_list.append("fever")
+                for sr in top_abnormalities:
+                    if sr[2]:
+                        # Extract the main condition from the description (e.g., "Stage 2 hypertension")
+                        cond = sr[2].split(' (')[0]
+                        abn_list.append(cond)
 
                 if len(abn_list) >= 2:
-                    line1 = f"Patient demonstrates concurrent {' and '.join(abn_list)} with {'comorbid obesity' if features_analysis['bmi_severity'] in ['high', 'severe'] else 'elevated metabolic risk'}."
+                    # Use actual descriptions for more accurate interpretation
+                    line1 = f"Patient demonstrates concurrent {', '.join(abn_list)} with {'comorbid obesity' if features_analysis['bmi_severity'] in ['high', 'severe'] else 'elevated metabolic risk'}."
 
-                    if features_analysis['temp_severity'] in ['high', 'critical'] and features_analysis['glucose_severity'] in ['high', 'critical']:
+                    if any('hypo' in a for a in abn_list) or any('shock' in a for a in abn_list):
+                        line2 = f"Combined physiologic collapse and metabolic disruption indicate critical systemic failure; emergency intervention is mandatory."
+                    elif features_analysis['temp_severity'] in ['high', 'critical'] and features_analysis['glucose_severity'] in ['high', 'critical']:
                         line2 = f"Combined thermoregulatory disruption and marked glucose dysregulation indicate acute systemic inflammatory response; immediate clinical evaluation warranted."
                     elif features_analysis['bp_severity'] in ['critical'] and features_analysis['glucose_severity'] in ['high', 'critical']:
-                        line2 = f"Severe hypertension with uncontrolled glycemia presents substantial cardiovascular and metabolic compromise; urgent intervention necessary."
+                        line2 = f"Critical blood pressure levels with uncontrolled glycemia presents substantial cardiovascular and metabolic compromise; urgent intervention necessary."
                     else:
                         line2 = f"Cumulative physiologic derangements suggest multisystem involvement requiring acute assessment and stabilization."
 
@@ -367,13 +407,33 @@ def extract_key_drivers(shap_values, feature_names, original_features, top_n=3):
             shap_val = shap_vals[idx]
             feature_val = original_features.get(feature_name, 'N/A')
 
-            # Determine impact direction
-            if shap_val > 0:
+            # Determine impact direction based on clinical ranges (Correct Medical Logic)
+            in_normal_range = True
+            if feature_name in CLINICAL_RANGES:
+                f_min = CLINICAL_RANGES[feature_name]['min']
+                f_max = CLINICAL_RANGES[feature_name]['max']
+                try:
+                    f_val_float = float(feature_val)
+                    if f_val_float < f_min or f_val_float > f_max:
+                        in_normal_range = False
+                except:
+                    pass
+
+            if not in_normal_range:
+                # Outside normal range (LOW or HIGH) -> must be labeled as "raises risk"
                 impact = "raises risk"
                 impact_color = "red"
             else:
-                impact = "lowers risk"
-                impact_color = "green"
+                # Inside normal range -> determine based on SHAP contribution
+                if shap_val > 0.001: # Small threshold for "raises"
+                    impact = "raises risk"
+                    impact_color = "red"
+                elif shap_val < -0.001: # Small threshold for "lowers"
+                    impact = "lowers risk"
+                    impact_color = "green"
+                else:
+                    impact = "neutral"
+                    impact_color = "blue"
 
             # For display purposes
             display_val = feature_val
@@ -588,16 +648,42 @@ def predict():
         else:
             reason = "normal vital signs and parameters"
 
-        confidence_val = f"{prob_high:.2%}"
+        # Safety Override: Force HIGH RISK for life-threatening or impossible values
+        # If any input value is physiologically impossible or life-threatening,
+        # prioritize patient safety and classify overall risk as HIGH.
+        is_life_threatening = False
+        threat_reasons = []
+        if float(data['Body_Temp']) < 92 or float(data['Body_Temp']) > 104:
+            is_life_threatening = True
+            threat_reasons.append("Life-threatening temperature")
+        if float(data['Glucose']) < 50 or float(data['Glucose']) > 350:
+            is_life_threatening = True
+            threat_reasons.append("Critical glucose levels")
+        if float(data['Systolic_BP']) < 80 or float(data['Systolic_BP']) > 190:
+            is_life_threatening = True
+            threat_reasons.append("Dangerous blood pressure")
+        if float(data['BMI']) < 14 or float(data['BMI']) > 60:
+            is_life_threatening = True
+            threat_reasons.append("Critical body mass index")
 
-        # Create a simple, human-friendly 2-line interpretation
-        simple_line1 = f"Prediction: {risk_label} — {confidence_val} confidence."
-        if 'High' in risk_label:
-            simple_line2 = "This indicates a high chance of significant illness — seek medical evaluation promptly."
-            note_message = "This result suggests potential health risk. Please consult your healthcare provider promptly. This tool is not a diagnosis."
+        if is_life_threatening:
+            final_class = 1
+            risk_label = 'High Risk'
+            prob_high = 0.999 # Max confidence
+            confidence_val = "99.9% (Critical)"
+            reason = "CRITICAL PHYSIOLOGICAL STATE DETECTED"
+            note_message = f"🚨 URGENT: {', '.join(threat_reasons).upper()} DETECTED. SEEK IMMEDIATE EMERGENCY MEDICAL ATTENTION. Patient safety is prioritized over statistical modeling."
+            simple_line1 = f"PREDICTION: CRITICAL HIGH RISK"
+            simple_line2 = "LIFE-THREATENING VALUES DETECTED - PLEASE PROCEED TO EMERGENCY CARE IMMEDIATELY."
         else:
-            simple_line2 = "This indicates low immediate risk — continue routine care and consult your doctor if symptoms develop."
-            note_message = "Overall looks OK. Maintain healthy habits; consult your doctor if you have concerns. This tool is not a diagnosis."
+            confidence_val = f"{prob_high:.2%}"
+            simple_line1 = f"Prediction: {risk_label} — {confidence_val} confidence."
+            if final_class == 1:
+                simple_line2 = "This indicates a high chance of significant illness — seek medical evaluation promptly."
+                note_message = "This result suggests potential health risk. Please consult your healthcare provider promptly. This tool is not a diagnosis."
+            else:
+                simple_line2 = "This indicates low immediate risk — continue routine care and consult your doctor if symptoms develop."
+                note_message = "Overall looks OK. Maintain healthy habits; consult your doctor if you have concerns. This tool is not a diagnosis."
 
         simple_interpretation = [simple_line1, simple_line2]
         # confidence_val = ... (rest of logic)
