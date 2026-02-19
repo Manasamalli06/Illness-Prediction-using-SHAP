@@ -375,6 +375,148 @@ def generate_clinical_interpretation(age, gender_encoded, bmi, systolic_bp, gluc
     return line1, line2
 
 
+def generate_clinical_suggestions(age, bmi, systolic_bp, glucose, body_temp, risk_level):
+    """
+    Generate tailored clinical suggestions based on patient metrics.
+    Includes more comprehensive logic for BP categories, Glucose levels, 
+    and Weight management.
+    """
+    suggestions = []
+    
+    # --- Blood Pressure Suggestions ---
+    # According to AHA/ACC guidelines
+    if systolic_bp >= 180:
+        suggestions.append({
+            'category': 'Crisis Alert',
+            'icon': '🚨',
+            'text': 'Hypertensive Crisis detected! Seek emergency medical attention immediately as this level can cause end-organ damage.'
+        })
+    elif systolic_bp >= 140:
+        suggestions.append({
+            'category': 'Cardiovascular',
+            'icon': '❤️',
+            'text': f'Stage 2 Hypertension ({systolic_bp} mmHg). Consult a cardiologist for potential pharmacotherapy and strict monitoring.'
+        })
+    elif systolic_bp >= 130:
+        suggestions.append({
+            'category': 'Cardiovascular',
+            'icon': '❤️',
+            'text': 'Stage 1 Hypertension. Focus on the DASH diet (rich in fruits, veggies, low-fat dairy) and reducing sodium to <2,300mg/day.'
+        })
+    elif systolic_bp >= 120:
+        suggestions.append({
+            'category': 'Heart Health',
+            'icon': '❤️',
+            'text': 'Elevated Blood Pressure. Lifestyle modifications like increased potassium intake and stress management are recommended.'
+        })
+    elif systolic_bp < 90:
+        suggestions.append({
+            'category': 'Cardiovascular',
+            'icon': '📉',
+            'text': 'Hypotension (Low BP) detected. Ensure adequate hydration and consult a doctor if experiencing dizziness or fatigue.'
+        })
+
+    # --- Glucose / Metabolic Suggestions ---
+    if glucose >= 200:
+        suggestions.append({
+            'category': 'Metabolic Alert',
+            'icon': '⚠️',
+            'text': 'Critical Hyperglycemia. Immediate medical consultation is required to prevent potential ketoacidosis or other complications.'
+        })
+    elif glucose >= 126:
+        suggestions.append({
+            'category': 'Diabetes Care',
+            'icon': '🩸',
+            'text': 'Fasting glucose levels are consistent with Diabetes. A follow-up HbA1c test and endocrinology consult are strongly advised.'
+        })
+    elif glucose >= 100:
+        suggestions.append({
+            'category': 'Metabolic Health',
+            'icon': '🩸',
+            'text': 'Prediabetes range detected. Prioritize low-glycemic index foods and aim for at least 30 minutes of daily physical activity.'
+        })
+    elif glucose < 70:
+        suggestions.append({
+            'category': 'Metabolic Alert',
+            'icon': '📉',
+            'text': 'Hypoglycemia (Low Blood Sugar). Keep fast-acting glucose (like fruit juice) nearby and discuss with a doctor if frequent.'
+        })
+
+    # --- BMI / Weight Management ---
+    if bmi >= 35:
+        suggestions.append({
+            'category': 'Weight Management',
+            'icon': '⚖️',
+            'text': 'Class II/III Obesity. Consider consulting a multi-disciplinary weight management team (Nutritionist, Fitness Expert, Physician).'
+        })
+    elif bmi >= 30:
+        suggestions.append({
+            'category': 'Weight Management',
+            'icon': '⚖️',
+            'text': 'Obesity detected. Focus on a gradual weight loss of 5-10% of total body weight to significantly reduce metabolic risk.'
+        })
+    elif bmi >= 25:
+        suggestions.append({
+            'category': 'Healthy Living',
+            'icon': '⚖️',
+            'text': 'Overweight status. Replace processed snacks with whole foods and increase daily step count to reach a healthier weight range.'
+        })
+    elif bmi < 18.5:
+        suggestions.append({
+            'category': 'Nutrition',
+            'icon': '🍎',
+            'text': 'Underweight status. Ensure adequate calorie intake and consult a nutritionist to rule out nutritional deficiencies.'
+        })
+
+    # --- Temperature / Acute Response ---
+    if body_temp >= 102:
+        suggestions.append({
+            'category': 'Acute Care',
+            'icon': '🌡️',
+            'text': 'High Fever detected. Prioritize rest, hydration, and seek medical advice if fever persists beyond 24-48 hours.'
+        })
+    elif body_temp >= 100.4:
+        suggestions.append({
+            'category': 'Health Alert',
+            'icon': '🌡️',
+            'text': 'Mild Fever/Low-grade temperature. Monitor closely and stay hydrated while your body responds to potential inflammation.'
+        })
+    elif body_temp < 96:
+        suggestions.append({
+            'category': 'Acute Care',
+            'icon': '❄️',
+            'text': 'Hypothermia risk. Move to a warm environment and consult medical help if body temperature remains critically low.'
+        })
+
+    # --- Age-Specific Modifiers ---
+    if age >= 65:
+        suggestions.append({
+            'category': 'Senior Care',
+            'icon': '👴',
+            'text': 'As an older adult, prioritize balance exercises and ensure regular screenings for bone density and vision.'
+        })
+
+    # --- Generic if no specific issues ---
+    if not suggestions:
+        if risk_level == 'High Risk':
+            suggestions.append({
+                'category': 'Preventative',
+                'icon': '⚕️',
+                'text': 'Integrated risk model suggests high risk. A comprehensive wellness screening and blood work are recommended.'
+            })
+        else:
+            suggestions.append({
+                'category': 'Wellness',
+                'icon': '🌟',
+                'text': 'All parameters look excellent! Maintain your healthy habits, stay active, and keep up with annual check-ups.'
+            })
+
+    # Sort suggestions to put Alerts first (if any)
+    suggestions.sort(key=lambda x: 'Alert' not in x['category'])
+
+    return suggestions
+
+
 def extract_key_drivers(shap_values, feature_names, original_features, top_n=3):
     """
     Extract top key drivers (features) that influence the prediction.
@@ -419,16 +561,21 @@ def extract_key_drivers(shap_values, feature_names, original_features, top_n=3):
                 except:
                     pass
 
-            if not in_normal_range:
-                # Outside normal range (LOW or HIGH) -> must be labeled as "raises risk"
-                impact = "raises risk"
-                impact_color = "red"
-            else:
-                # Inside normal range -> determine based on SHAP contribution
-                if shap_val > 0.001: # Small threshold for "raises"
+            if feature_name in CLINICAL_RANGES:
+                if not in_normal_range:
+                    # Outside normal range (LOW or HIGH) -> labeled as "raises risk"
                     impact = "raises risk"
                     impact_color = "red"
-                elif shap_val < -0.001: # Small threshold for "lowers"
+                else:
+                    # Inside normal range -> always labeled as "lowers risk" or "neutral"
+                    impact = "lowers risk"
+                    impact_color = "green"
+            else:
+                # For features with no range (like Gender) -> determine based on SHAP contribution
+                if shap_val > 0.01: # Increased threshold for "raises" for non-range features
+                    impact = "raises risk"
+                    impact_color = "red"
+                elif shap_val < -0.01: # Increased threshold for "lowers"
                     impact = "lowers risk"
                     impact_color = "green"
                 else:
@@ -632,21 +779,15 @@ def predict():
         # Combine lines into final explanation
         explanation_text = f"{line1} {line2}"
 
-        # Generate specific reason for the risk level
-        if risk_label == 'High Risk':
-            # Check specific conditions for high risk
-            reasons = []
-            if float(data['Body_Temp']) >= 100.4:
-                reasons.append("high fever")
-            if float(data['Systolic_BP']) >= 140:
-                reasons.append("uncontrolled BP")
-            if float(data['Glucose']) >= 126:
-                reasons.append("high glucose")
-            if float(data['BMI']) >= 30:
-                reasons.append("high BMI")
-            reason = ", ".join(reasons) if reasons else "multiple risk factors"
-        else:
-            reason = "normal vital signs and parameters"
+        # Generate clinical suggestions
+        suggestions = generate_clinical_suggestions(
+            age=float(data['Age']),
+            bmi=float(data['BMI']),
+            systolic_bp=float(data['Systolic_BP']),
+            glucose=float(data['Glucose']),
+            body_temp=float(data['Body_Temp']),
+            risk_level=risk_label
+        )
 
         # Safety Override: Force HIGH RISK for life-threatening or impossible values
         # If any input value is physiologically impossible or life-threatening,
@@ -669,14 +810,15 @@ def predict():
         if is_life_threatening:
             final_class = 1
             risk_label = 'High Risk'
-            prob_high = 0.999 # Max confidence
-            confidence_val = "99.9% (Critical)"
-            reason = "CRITICAL PHYSIOLOGICAL STATE DETECTED"
+            confidence_val = "100.00%"  # Standardized to 100-scale
             note_message = f"🚨 URGENT: {', '.join(threat_reasons).upper()} DETECTED. SEEK IMMEDIATE EMERGENCY MEDICAL ATTENTION. Patient safety is prioritized over statistical modeling."
             simple_line1 = f"PREDICTION: CRITICAL HIGH RISK"
             simple_line2 = "LIFE-THREATENING VALUES DETECTED - PLEASE PROCEED TO EMERGENCY CARE IMMEDIATELY."
         else:
-            confidence_val = f"{prob_high:.2%}"
+            # Standardize confidence to reflect the probability of the predicted class
+            actual_confidence = prob_high if final_class == 1 else (1 - prob_high)
+            confidence_val = f"{actual_confidence * 100:.2f}%"
+            
             simple_line1 = f"Prediction: {risk_label} — {confidence_val} confidence."
             if final_class == 1:
                 simple_line2 = "This indicates a high chance of significant illness — seek medical evaluation promptly."
@@ -727,7 +869,7 @@ def predict():
             top_n=3
         ) if shap_values_for_drivers is not None else []
 
-        print(f"DEBUG: Risk Label: {risk_label}, Reason: {reason}")
+        print(f"DEBUG: Risk Label: {risk_label}, Suggestions Count: {len(suggestions)}")
 
         return render_template('result.html',
                      risk_level=risk_label,
@@ -735,7 +877,7 @@ def predict():
                      explanation=explanation_text,
                      simple_interpretation=simple_interpretation,
                      note_message=note_message,
-                     reason=reason,
+                     suggestions=suggestions,
                      shap_plot=shap_plot_base64,
                      feature_names=feature_names,
                      feature_values=df[feature_names].values[0].tolist(),

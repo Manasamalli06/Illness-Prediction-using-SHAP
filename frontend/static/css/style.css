@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 :root {
     --bg-soft: #f5f8fb;
     /* single soft background */
@@ -387,6 +391,56 @@ td {
     border-top: 1px solid #e2e8f0;
     color: var(--muted);
     font-size: 0.9rem;
+}
+
+/* About Section Styles */
+.about-app {
+    padding: 6rem 2rem;
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about-app h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 4rem;
+    border: none;
+    color: var(--text-main);
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+}
+
+.about-item h4 {
+    color: var(--accent);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.about-item p {
+    color: var(--muted);
+    font-size: 1.05rem;
+    line-height: 1.7;
+}
+
+@media (max-width: 1024px) {
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .about-app {
+        padding: 4rem 2rem;
+    }
 }
 
 @media (max-width: 1024px) {

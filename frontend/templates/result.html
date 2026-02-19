@@ -91,10 +91,11 @@
         .tab-content.active {
             display: block;
         }
+
         .simple-interpretation-box {
             margin: 1rem 0;
             padding: 1rem;
-            background: linear-gradient(90deg,#f7fbfc,#eef6f8);
+            background: linear-gradient(90deg, #f7fbfc, #eef6f8);
             border: 1px solid #d1eef3;
             border-radius: 8px;
         }
@@ -266,11 +267,11 @@
                                 <div class="driver-name">{{ driver.name }}</div>
                                 <div class="driver-value">
                                     {% if driver.name == 'Gender' %}
-                                        Value: {{ driver.value }}
+                                    Value: {{ driver.value }}
                                     {% elif driver.name in ['Age', 'BMI', 'Glucose'] %}
-                                        Value: {{ driver.value | string }}
+                                    Value: {{ driver.value | string }}
                                     {% else %}
-                                        Value: {{ driver.value }}
+                                    Value: {{ driver.value }}
                                     {% endif %}
                                 </div>
                             </div>
@@ -283,22 +284,25 @@
                 </div>
                 {% endif %}
 
-                <!-- Risk Reason Box -->
-                {% if risk_level == 'High Risk' %}
-                <div class="key-drivers-box" style="background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-color: #f44336;">
-                    <h3>📋 Specific Risk Factors</h3>
-                    <div style="font-size: 1rem; color: #c62828; font-weight: 500;">
-                        This prediction is based on: <strong>{{ reason }}</strong>
+                <!-- Clinical Suggestions Box -->
+                <div class="key-drivers-box"
+                    style="background: linear-gradient(135deg, #f0f7ff 0%, #e0efff 100%); border-color: #2196f3;">
+                    <h3>💡 Health Recommendations & Suggestions</h3>
+                    <div class="drivers-list">
+                        {% for suggestion in suggestions %}
+                        <div class="driver-item" style="border-left-color: #2196f3;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <span style="font-size: 1.5rem;">{{ suggestion.icon }}</span>
+                                <div>
+                                    <div class="driver-name">{{ suggestion.category }}</div>
+                                    <div class="driver-value" style="color: #333; font-weight: 500;">{{ suggestion.text
+                                        }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% else %}
-                <div class="key-drivers-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-color: #4caf50;">
-                    <h3>📋 Specific Risk Factors</h3>
-                    <div style="font-size: 1rem; color: #2e7d32; font-weight: 500;">
-                        This prediction is based on: <strong>{{ reason }}</strong>
-                    </div>
-                </div>
-                {% endif %}
 
                 <div class="results-grid">
                     <!-- Left Column: Detailed Interpretation -->
@@ -313,12 +317,13 @@
                     <div class="shap-box">
                         <h3>Feature Importance (SHAP)</h3>
                         {% if shap_plot %}
-                            <img src="data:image/png;base64,{{ shap_plot }}" alt="SHAP Explanation Plot">
-                            <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
-                                Red bars indicate features that increase risk prediction; Blue bars indicate features that decrease risk.
-                            </p>
+                        <img src="data:image/png;base64,{{ shap_plot }}" alt="SHAP Explanation Plot">
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 0.5rem;">
+                            Red bars indicate features that increase risk prediction; Blue bars indicate features that
+                            decrease risk.
+                        </p>
                         {% else %}
-                            <p style="color: #999; font-style: italic;">SHAP visualization could not be generated.</p>
+                        <p style="color: #999; font-style: italic;">SHAP visualization could not be generated.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -370,7 +375,7 @@
                         <button type="submit" class="analyze-btn" style="width: 100%; margin-top: 0;">📥 Download
                             Report</button>
                     </form>
-                    <a href="/" class="analyze-btn"
+                    <a href="/diagnostics" class="analyze-btn"
                         style="flex: 1; min-width: 200px; text-align: center; display: flex; align-items: center; justify-content: center; text-decoration: none; margin-top: 0;">Analyze
                         New Patient</a>
                 </div>
