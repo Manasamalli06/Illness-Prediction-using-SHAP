@@ -1,0 +1,26 @@
+[
+    {
+        "Model": "Logistic Regression",
+        "Accuracy": 0.871,
+        "Precision": 0.8194444444444444,
+        "Recall": 0.7539936102236422,
+        "F1-Score": 0.7853577371048253,
+        "ROC-AUC": 0.9128869790867363
+    },
+    {
+        "Model": "Random Forest",
+        "Accuracy": 0.975,
+        "Precision": 0.9736842105263158,
+        "Recall": 0.9456869009584664,
+        "F1-Score": 0.9594813614262561,
+        "ROC-AUC": 0.9580665113402254
+    },
+    {
+        "Model": "XGBoost (Proposed)",
+        "Accuracy": 0.974,
+        "Precision": 0.9704918032786886,
+        "Recall": 0.9456869009584664,
+        "F1-Score": 0.9579288025889967,
+        "ROC-AUC": 0.9634982862936042
+    }
+]

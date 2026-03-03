@@ -45,7 +45,7 @@ CLINICAL_RANGES = {
     'Glucose': {'min': 70, 'max': 125, 'name': 'Glucose', 'unit': 'mg/dL'},
     'Systolic_BP': {'min': 90, 'max': 130, 'name': 'Systolic BP', 'unit': 'mmHg'},
     'BMI': {'min': 18.5, 'max': 24.9, 'name': 'BMI', 'unit': ''},
-    'Age': {'min': 0, 'max': 60, 'name': 'Age', 'unit': 'years'}
+    'Age': {'min': 8, 'max': 79, 'name': 'Age', 'unit': 'years'}
 }
 
 # Global variables to hold loaded artifacts
@@ -724,6 +724,10 @@ def predict():
         # Use request.form for standard HTML form submission
         data = request.form
 
+        age_val = float(data['Age'])
+        if age_val < 8 or age_val > 79:
+            return render_template('index.html', error='Age must be between 8 and 79 years for accurate prediction.')
+
         # Store original gender value before encoding
         original_gender = data['Gender']
 
@@ -1066,9 +1070,11 @@ def download_report():
 load_artifacts()
 
 if __name__ == '__main__':
-    # Print a clear message that the server is ready
+    # Use PORT env variable for cloud deployments (Render, Railway, etc.)
+    # Falls back to 5000 for local development
+    port = int(os.environ.get('PORT', 5000))
+    is_debug = os.environ.get('FLASK_ENV', 'production') == 'development'
     print("\n" + "="*50)
-    print("SERVER RUNNING! Open this URL in your browser:")
-    print("http://127.0.0.1:5000/")
+    print(f"SERVER RUNNING on port {port}!")
     print("="*50 + "\n")
-    app.run(debug=True, port=5000)
+    app.run(host='0.0.0.0', debug=is_debug, port=port)
