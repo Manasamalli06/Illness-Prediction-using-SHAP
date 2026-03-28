@@ -13,24 +13,22 @@ from sklearn.metrics import (
 )
 from xgboost import XGBClassifier
 
-# Add backend to path
+# Robust Path Handling
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-BACKEND_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
-sys.path.append(BACKEND_DIR)
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '../../'))
+MODEL_DIR = os.path.join(PROJECT_ROOT, 'backend', 'models')
+DATA_PATH = os.path.join(PROJECT_ROOT, 'backend', 'data', 'augmented_medical_data.csv')
 
-# Constants
-MODEL_DIR = os.path.join(SCRIPT_DIR, '../models')
 if not os.path.exists(MODEL_DIR):
     os.makedirs(MODEL_DIR)
 
 def load_and_preprocess_data():
     """Load and preprocess data from the perfect dataset"""
     print("Loading data...")
-    csv_path = os.path.join(SCRIPT_DIR, '../data/augmented_medical_data.csv')
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Data file not found at {csv_path}. Run data generation first.")
+    if not os.path.exists(DATA_PATH):
+        raise FileNotFoundError(f"Data file not found at {DATA_PATH}. Run data generation first.")
         
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(DATA_PATH)
 
     # Label Encoding
     label_mapping = {'Low Risk': 0, 'High Risk': 1}

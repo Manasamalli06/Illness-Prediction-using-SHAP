@@ -6,8 +6,9 @@ print("!" * 50 + "\n")
 import numpy as np
 import joblib
 import os
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 import warnings
@@ -21,7 +22,6 @@ import json
 import shap
 
 warnings.filterwarnings('ignore')
-matplotlib.use('Agg')  # Use non-interactive backend
 
 app = Flask(__name__, 
             template_folder='../../frontend/templates', 
@@ -709,6 +709,10 @@ def home():
 @app.route('/diagnostics')
 def diagnostics():
     return render_template('index.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
 
 @app.route('/predict', methods=['POST'])
 def predict():
