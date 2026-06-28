@@ -95,21 +95,9 @@ def initialize_shap_explainer():
 
     try:
         print("[SHAP] Initializing SHAP explainer...")
-        if os.path.exists(DATA_FILE):
-            df = pd.read_csv(DATA_FILE)
-            # Preprocess background data
-            if 'Gender' in df.columns and df['Gender'].dtype == 'object':
-                df['Gender'] = df['Gender'].map({'Male': 0, 'Female': 1, 'Transgender': 2})
-            X_bg = df[feature_names].values
-            X_bg_scaled = scaler.transform(X_bg)
-            # Use smaller sample for faster SHAP computation (50 samples)
-            background_data = X_bg_scaled[:min(50, len(X_bg_scaled))]
-
-            # Initialize SHAP TreeExplainer for XGBoost
-            explainer = shap.TreeExplainer(model)
-            print("[SHAP] SHAP TreeExplainer initialized successfully.")
-        else:
-            print("[SHAP] Background data not found for SHAP explainer.")
+        # Initialize SHAP TreeExplainer for XGBoost without requiring background data
+        explainer = shap.TreeExplainer(model)
+        print("[SHAP] SHAP TreeExplainer initialized successfully.")
     except Exception as e:
         print(f"[SHAP] Error initializing SHAP explainer: {e}")
         import traceback
@@ -619,7 +607,7 @@ def generate_shap_plot(X_sample, predicted_prob, risk_label):
         base64 string of the plot PNG or None if generation fails
     """
     try:
-        if explainer is None or background_data is None:
+        if explainer is None:
             print("SHAP explainer not initialized.")
             return None
 
@@ -854,7 +842,7 @@ def predict():
 
         # Generate SHAP values for key drivers extraction
         shap_values_for_drivers = None
-        if explainer is not None and background_data is not None:
+        if explainer is not None:
             try:
                 shap_values_for_drivers = explainer.shap_values(df_scaled)
             except:
